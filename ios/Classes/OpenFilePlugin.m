@@ -7,7 +7,6 @@ static NSString *const CHANNEL_NAME = @"open_file";
 
 @implementation OpenFilePlugin{
     FlutterResult _result;
-    UIViewController *_viewController;
     UIDocumentInteractionController *_documentController;
     UIDocumentInteractionController *_interactionController;
 }
@@ -16,18 +15,8 @@ static NSString *const CHANNEL_NAME = @"open_file";
     FlutterMethodChannel* channel = [FlutterMethodChannel
                                      methodChannelWithName:CHANNEL_NAME
                                      binaryMessenger:[registrar messenger]];
-    UIViewController *viewController =
-    [UIApplication sharedApplication].delegate.window.rootViewController;
-    OpenFilePlugin* instance = [[OpenFilePlugin alloc] initWithViewController:viewController];
+    OpenFilePlugin* instance = [[OpenFilePlugin alloc] init];
     [registrar addMethodCallDelegate:instance channel:channel];
-}
-
-- (instancetype)initWithViewController:(UIViewController *)viewController {
-    self = [super init];
-    if (self) {
-        _viewController = viewController;
-    }
-    return self;
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
@@ -117,7 +106,7 @@ static NSString *const CHANNEL_NAME = @"open_file";
             @try {
                 BOOL previewSucceeded = [_documentController presentPreviewAnimated:YES];
                 if(!previewSucceeded){
-                    [_documentController presentOpenInMenuFromRect:CGRectMake(500,20,100,100) inView:_viewController.view animated:YES];
+                    [_documentController presentOpenInMenuFromRect:CGRectMake(500,20,100,100) inView:[self rootViewController].view animated:YES];
                 }
             }@catch (NSException *exception) {
                 NSDictionary * dict = @{@"message":@"File opened incorrectly。", @"type":@-4};
@@ -154,7 +143,11 @@ static NSString *const CHANNEL_NAME = @"open_file";
 }
 
 - (UIViewController *)documentInteractionControllerViewControllerForPreview:(UIDocumentInteractionController *)controller {
-    return  _viewController;
+    return  [self rootViewController];
+}
+
+-(UIViewController *) rootViewController {
+    return UIApplication.sharedApplication.delegate.window.rootViewController;
 }
 
 - (BOOL) isBlankString:(NSString *)string {
